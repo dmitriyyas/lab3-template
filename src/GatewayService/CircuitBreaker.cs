@@ -18,7 +18,7 @@ public class CircuitBreaker
     private Dictionary<Uri, Timer?> _timers = new();
 
     private const int _maxFailures = 3;
-    private const int _timeout = 10 * 1000;
+    private const int _timeout = 3 * 1000;
 
     public CircuitBreaker()
     {
@@ -28,6 +28,7 @@ public class CircuitBreaker
 
     public async Task<ServiceResponse<T>> ExecuteAsync<T>(Func<Task<ServiceResponse<T>>> action,
         Func<Task<ServiceResponse<bool>>> healthCheck,
+        ServiceResponse<T> fallback,
         Uri serviceAddress)
     {
         if (!_failures.ContainsKey(serviceAddress))
@@ -41,7 +42,7 @@ public class CircuitBreaker
         switch(_states[serviceAddress])
         {
             case CircuitBreakerState.Open:
-                return ServiceResponse<T>.Fallback;
+                return fallback;
             case CircuitBreakerState.Closed:
                 try
                 {
@@ -52,10 +53,10 @@ public class CircuitBreaker
                 catch
                 {
                     RecordFailure(serviceAddress);
-                    return ServiceResponse<T>.Fallback;
+                    return fallback;
                 }
             default:
-                return ServiceResponse<T>.Fallback;
+                return fallback;
         }
     }
 
@@ -70,7 +71,7 @@ public class CircuitBreaker
 
     private void Trip(Uri address)
     {
-        Console.WriteLine("Trip");
+        Console.WriteLine($"{address} now open");
         _states[address] = CircuitBreakerState.Open;
 
         _timers[address] = new Timer(async _ => await CheckHealth(address), null, 0, _timeout);
@@ -78,7 +79,7 @@ public class CircuitBreaker
 
     private async Task CheckHealth(Uri address)
     {
-        Console.WriteLine("Checking health");
+        Console.WriteLine($"Checking health for {address}");
         var response = await _healthChecks[address]();
 
         if (response.Response)
@@ -88,8 +89,9 @@ public class CircuitBreaker
         }
     }
 
-    private void Reset(Uri address)
+    public void Reset(Uri address)
     {
+        Console.WriteLine($"{address} now closed");
         _failures[address] = 0;
         _states[address] = CircuitBreakerState.Closed;
     }

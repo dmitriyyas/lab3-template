@@ -7,5 +7,5 @@ public class ErrorDto(string message)
     [JsonPropertyName("message")]
     public string Message { get; set; } = message;
 
-    public static ErrorDto ServiceUnavailable => new("Service unavailable");
+    public static ErrorDto ServiceUnavailable(string name) => new($"{name} Service unavailable");
 }

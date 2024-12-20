@@ -8,7 +8,10 @@ public class BonusService(IHttpClientFactory httpClientFactory,
 {
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
+    private const string _serviceName = "Bonus"; 
     public Uri Address { get; } = new("http://bonus_service:8050/");
+
+    private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 
     public async Task<ServiceResponse<bool>> HealthCheck()
     {
@@ -21,14 +24,14 @@ public class BonusService(IHttpClientFactory httpClientFactory,
         }
         catch (Exception ex)
         {
-            return new(false, 503, ErrorDto.ServiceUnavailable);
+            return Fallback<bool>();
         }
     }
 
     public async Task<ServiceResponse<PrivilegeDto>> GetPrivileges(string username)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<PrivilegeDto>.Fallback;
+            return Fallback<PrivilegeDto>();
 
         var client = _httpClientFactory.CreateClient();
         using var privilegeRequest = new HttpRequestMessage(HttpMethod.Get, Address + "api/v1/privileges");
@@ -38,13 +41,13 @@ public class BonusService(IHttpClientFactory httpClientFactory,
         {
             using var privilegeResponse = await client.SendAsync(privilegeRequest);
             return new ServiceResponse<PrivilegeDto>(await privilegeResponse.Content.ReadFromJsonAsync<PrivilegeDto>());
-        }, HealthCheck, Address);
+        }, HealthCheck, Fallback<PrivilegeDto>(), Address);
     }
 
     public async Task<ServiceResponse<PurchaseInfoDto>> BuyTicket(string username, TicketInfoDto ticketInfo)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<PurchaseInfoDto>.Fallback;
+            return Fallback<PurchaseInfoDto>();
 
         var client = _httpClientFactory.CreateClient();
         using var buyRequest = new HttpRequestMessage(HttpMethod.Post, Address + $"api/v1/privileges");
@@ -60,14 +63,14 @@ public class BonusService(IHttpClientFactory httpClientFactory,
         }
         catch (Exception ex)
         {
-            return new(null, 503, ErrorDto.ServiceUnavailable);
+            return Fallback<PurchaseInfoDto>();
         }
     }
 
     public async Task<ServiceResponse<bool>> CancelTicket(string username, Guid ticketUid)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<bool>.Fallback;
+            return Fallback<bool>();
 
         var client = _httpClientFactory.CreateClient();
         using var privilegeRequest = new HttpRequestMessage(HttpMethod.Delete, Address + $"api/v1/privileges/{ticketUid}");
@@ -83,7 +86,7 @@ public class BonusService(IHttpClientFactory httpClientFactory,
         }
         catch (Exception ex)
         {
-            return new(false, 503, ErrorDto.ServiceUnavailable);
+            return Fallback<bool>();
         }
     }
 }

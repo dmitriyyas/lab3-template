@@ -7,12 +7,12 @@ namespace GatewayService.Controllers;
 
 [ApiController]
 [Route("")]
-public class GatewayController(IHttpClientFactory httpClientFactory,
+public class GatewayController(RequestQueue requestQueue,
     BonusService bonusService,
     FlightService flightService,
     TicketService ticketService) : ControllerBase
 {
-    private IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private RequestQueue _requestQueue = requestQueue;
     private BonusService _bonusService = bonusService;
     private FlightService _flightService = flightService;
     private TicketService _ticketService = ticketService;
@@ -62,7 +62,7 @@ public class GatewayController(IHttpClientFactory httpClientFactory,
         var privilegeResponse = await _bonusService.GetPrivileges(username);
         var privilege = privilegeResponse.Response;
 
-        var shortPrivilege = new ShortPrivilegeDto(privilege?.Balance ?? 0, privilege?.Status ?? "BRONZE");
+        object shortPrivilege = privilege is not null ? new ShortPrivilegeDto(privilege.Balance, privilege.Status) : "";
         var userInfo = new UserInfoDto(ticketDetails, shortPrivilege);
 
         return Ok(userInfo);
@@ -97,6 +97,7 @@ public class GatewayController(IHttpClientFactory httpClientFactory,
     [HttpGet("api/v1/privilege")]
     public async Task<IActionResult> GetPrivilege([FromHeader(Name = "X-User-Name")] string username)
     {
+        Console.WriteLine("got request get privilege");
         var privilegeResponse = await _bonusService.GetPrivileges(username);
         if (IsSuccessCode(privilegeResponse.StatusCode))
             return Ok(privilegeResponse.Response);
@@ -139,7 +140,11 @@ public class GatewayController(IHttpClientFactory httpClientFactory,
             return StatusCode(privilegeResponse.StatusCode, privilegeResponse.ErrorDto);
         if (IsServerError(privilegeResponse.StatusCode))
         {
-            //поставить запрос в очередь
+            _requestQueue.AddRequestToQueue(async () =>
+            {
+                var res = await _bonusService.CancelTicket(username, ticketUid);
+                return !IsServerError(res.StatusCode);
+            });
         }
 
         return NoContent();
@@ -172,7 +177,7 @@ public class GatewayController(IHttpClientFactory httpClientFactory,
         var privilegeResponse = await _bonusService.GetPrivileges(username);
         var privilege = privilegeResponse.Response;
 
-        var shortPrivilege = new ShortPrivilegeDto(privilege?.Balance ?? 0, privilege?.Status ?? "BRONZE");
+        object shortPrivilege = privilege is not null ? new ShortPrivilegeDto(privilege.Balance, privilege.Status) : "";
 
         var result = new PurchaseResponseDto(ticket.TicketUid,
             flight.FlightNumber,

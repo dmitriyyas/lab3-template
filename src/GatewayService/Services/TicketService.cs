@@ -8,7 +8,10 @@ public class TicketService(IHttpClientFactory httpClientFactory,
 {
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
+    private const string _serviceName = "Ticket";
     public Uri Address { get; } = new("http://ticket_service:8070/");
+
+    private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 
     public async Task<ServiceResponse<bool>> HealthCheck()
     {
@@ -21,14 +24,14 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         }
         catch (Exception ex)
         {
-            return new(false, 503, ErrorDto.ServiceUnavailable);
+            return Fallback<bool>();
         }
     }
 
     public async Task<ServiceResponse<List<TicketDto>>> GetTickets(string username)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<List<TicketDto>>.Fallback;
+            return Fallback<List<TicketDto>>();
 
         var client = _httpClientFactory.CreateClient();
         using var ticketsRequest = new HttpRequestMessage(HttpMethod.Get, Address + "api/v1/tickets");
@@ -38,13 +41,13 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         {
             using var ticketsResponse = await client.SendAsync(ticketsRequest);
             return new ServiceResponse<List<TicketDto>>(await ticketsResponse.Content.ReadFromJsonAsync<List<TicketDto>>());
-        }, HealthCheck, Address);
+        }, HealthCheck, Fallback<List<TicketDto>>(), Address);
     }
 
     public async Task<ServiceResponse<TicketDto>> GetTicket(string username, Guid ticketUid)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<TicketDto>.Fallback;
+            return Fallback<TicketDto>();
 
         var client = _httpClientFactory.CreateClient();
         using var ticketRequest = new HttpRequestMessage(HttpMethod.Get, Address + $"api/v1/tickets/{ticketUid}");
@@ -57,13 +60,13 @@ public class TicketService(IHttpClientFactory httpClientFactory,
                 return new ServiceResponse<TicketDto>(null, (int)ticketResponse.StatusCode, new ErrorDto(await ticketResponse.Content.ReadAsStringAsync()));
 
             return new ServiceResponse<TicketDto>(await ticketResponse.Content.ReadFromJsonAsync<TicketDto>());
-        }, HealthCheck, Address);
+        }, HealthCheck, Fallback<TicketDto>(), Address);
     }
 
     public async Task<ServiceResponse<bool>> CancelTicket(string username, Guid ticketUid)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<bool>.Fallback;
+            return Fallback<bool>();
 
         var client = _httpClientFactory.CreateClient();
         using var ticketRequest = new HttpRequestMessage(HttpMethod.Delete, Address + $"api/v1/tickets/{ticketUid}");
@@ -79,14 +82,14 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         }
         catch (Exception ex)
         {
-            return new(false, 503, ErrorDto.ServiceUnavailable);
+            return Fallback<bool>();
         }
     }
 
     public async Task<ServiceResponse<TicketDto>> CreateTicket(string username, TicketCreateDto ticketCreateDto)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<TicketDto>.Fallback;
+            return Fallback<TicketDto>();
 
         var client = _httpClientFactory.CreateClient();
         var ticketRequest = new HttpRequestMessage(HttpMethod.Post, Address + $"api/v1/tickets");
@@ -103,7 +106,7 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         }
         catch (Exception ex)
         {
-            return new(null, 503, ErrorDto.ServiceUnavailable);
+            return Fallback<TicketDto>();
         }
     }
 }

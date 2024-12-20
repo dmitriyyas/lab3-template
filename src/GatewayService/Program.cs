@@ -15,6 +15,7 @@ builder.Services.AddSingleton<BonusService>();
 builder.Services.AddSingleton<FlightService>();
 builder.Services.AddSingleton<TicketService>();
 builder.Services.AddSingleton<CircuitBreaker>();
+builder.Services.AddSingleton<RequestQueue>();
 
 var app = builder.Build();
 

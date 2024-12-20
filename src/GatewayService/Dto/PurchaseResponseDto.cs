@@ -1,4 +1,6 @@
-﻿namespace GatewayService.Dto;
+﻿using System.Text.Json.Serialization;
+
+namespace GatewayService.Dto;
 
 public class PurchaseResponseDto(Guid ticketUid,
     string flightNumber,
@@ -9,7 +11,7 @@ public class PurchaseResponseDto(Guid ticketUid,
     int paidByMoney,
     int paidByBonuses,
     string status,
-    ShortPrivilegeDto privilege)
+    object privilege)
 {
     public Guid TicketUid { get; set; } = ticketUid;
     public string FlightNumber { get; set; } = flightNumber;
@@ -20,5 +22,5 @@ public class PurchaseResponseDto(Guid ticketUid,
     public int PaidByMoney { get; set; } = paidByMoney;
     public int PaidByBonuses { get; set; } = paidByBonuses;
     public string Status { get; set; } = status;
-    public ShortPrivilegeDto Privilege { get; set; } = privilege;
+    public object Privilege { get; set; } = privilege;
 }

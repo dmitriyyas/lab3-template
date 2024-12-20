@@ -11,8 +11,11 @@ public class FlightService(IHttpClientFactory httpClientFactory,
 {
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
+    private const string _serviceName = "Flight";
 
-    public Uri Address { get; } = new("http://ticket_service:8070/");
+    public Uri Address { get; } = new("http://flight_service:8060/");
+
+    private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 
     public async Task<ServiceResponse<bool>> HealthCheck()
     {
@@ -25,21 +28,23 @@ public class FlightService(IHttpClientFactory httpClientFactory,
         }
         catch (Exception ex)
         {
-            return new(false, 503, ErrorDto.ServiceUnavailable);
+            return Fallback<bool>();
         }
     }
 
     public async Task<ServiceResponse<FlightsDto>> GetFlights(List<string>? flightNumbers = null, int? page = null, int? size = null)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<FlightsDto>.Fallback;
+            return Fallback<FlightsDto>();
 
         var client = _httpClientFactory.CreateClient();
         var query = "api/v1/flights";
+        if (flightNumbers is not null || page is not null || size is not null)
+            query += '?';
         if (flightNumbers is not null)
             query += string.Join('&', flightNumbers.Select(num => $"numbers={num}"));
         if (page is not null && size is not null)
-            query += $"?page={page}&size={size}";
+            query += $"page={page}&size={size}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, Address + query);
 
@@ -47,13 +52,13 @@ public class FlightService(IHttpClientFactory httpClientFactory,
         {
             using var response = await client.SendAsync(request);
             return new ServiceResponse<FlightsDto>(await response.Content.ReadFromJsonAsync<FlightsDto>());
-        }, HealthCheck, Address);
+        }, HealthCheck, Fallback<FlightsDto>(), Address);
     }
 
     public async Task<ServiceResponse<FlightDto>> GetFlight(string flightNumber)
     {
         if (_circuitBreaker.IsOpen(Address))
-            return ServiceResponse<FlightDto>.Fallback;
+            return Fallback<FlightDto>();
 
         var client = _httpClientFactory.CreateClient();
         var flightRequest = new HttpRequestMessage(HttpMethod.Get, Address + $"api/v1/flights/{flightNumber}");
@@ -64,6 +69,6 @@ public class FlightService(IHttpClientFactory httpClientFactory,
             if (!flightResponse.IsSuccessStatusCode)
                 return new ServiceResponse<FlightDto>(null, (int)flightResponse.StatusCode, new ErrorDto(await flightResponse.Content.ReadAsStringAsync()));
             return new ServiceResponse<FlightDto>(await flightResponse.Content.ReadFromJsonAsync<FlightDto>());
-        }, HealthCheck, Address);
+        }, HealthCheck, Fallback<FlightDto>(), Address);
     }
 }

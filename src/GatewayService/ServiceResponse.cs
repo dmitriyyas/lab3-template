@@ -8,5 +8,5 @@ public class ServiceResponse<T>(T? response, int statusCode = 200, ErrorDto? err
     public int StatusCode { get; set; } = statusCode;
     public ErrorDto? ErrorDto { get; set; } = errorDto;
 
-    public static ServiceResponse<T> Fallback => new(default(T?), 503, ErrorDto.ServiceUnavailable);
+    public static ServiceResponse<T> Fallback(string name) => new(default(T?), 503, ErrorDto.ServiceUnavailable(name));
 }

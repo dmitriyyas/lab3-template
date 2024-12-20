@@ -37,7 +37,7 @@ public class PrivilegeController(PrivilegesContext context) : ControllerBase
             var paidByMoney = ticketInfo.Price - paidByBonuses;
             var newBalance = (privilege.Balance ?? 0) - paidByBonuses;
 
-            await AddHistory(privilege.Id, ticketInfo.TicketUid, ticketInfo.Date, paidByBonuses, "DEBIT_THE_ACCOUNT");
+            await AddHistory(privilege.Id, ticketInfo.TicketUid, DateTime.UtcNow, paidByBonuses, "DEBIT_THE_ACCOUNT");
             await UpdateBalance(privilege.Id, newBalance);
 
             return Ok(new PurchaseInfoDto(paidByBonuses, paidByMoney));
@@ -49,7 +49,7 @@ public class PrivilegeController(PrivilegesContext context) : ControllerBase
             var diff = (int)(paidByMoney * 0.1);
             var newBalance = (privilege.Balance ?? 0) + diff;
 
-            await AddHistory(privilege.Id, ticketInfo.TicketUid, ticketInfo.Date, diff, "FILL_IN_BALANCE");
+            await AddHistory(privilege.Id, ticketInfo.TicketUid, DateTime.UtcNow, diff, "FILL_IN_BALANCE");
             await UpdateBalance(privilege.Id, newBalance);
 
             return Ok(new PurchaseInfoDto(paidByBonuses, paidByMoney));
@@ -72,7 +72,10 @@ public class PrivilegeController(PrivilegesContext context) : ControllerBase
 
         await UpdateBalance(privilegeHistory.PrivilegeId!.Value, newBalance);
 
-        _context.PrivilegeHistories.Remove(privilegeHistory);
+        var privilege = privilegeHistory.Privilege!;
+
+        await AddHistory(privilege.Id, ticketUid, DateTime.UtcNow, privilegeHistory.BalanceDiff,
+            privilegeHistory.OperationType == "DEBIT_THE_ACCOUNT" ? "FILL_IN_BALANCE" : "DEBIT_THE_ACCOUNT");
         await _context.SaveChangesAsync();
 
         return NoContent();
