@@ -10,19 +10,14 @@ public enum CircuitBreakerState
     Open
 }
 
-public class CircuitBreaker
+public class CircuitBreaker(RequestQueue requestQueue)
 {
+    private readonly RequestQueue _requestQueue = requestQueue;
     private Dictionary<Uri, Func<Task<ServiceResponse<bool>>>> _healthChecks = new();
     private Dictionary<Uri, int> _failures = new();
     private Dictionary<Uri, CircuitBreakerState> _states = new();
-    private Dictionary<Uri, Timer?> _timers = new();
 
     private const int _maxFailures = 3;
-    private const int _timeout = 3 * 1000;
-
-    public CircuitBreaker()
-    {
-    }
 
     public bool IsOpen(Uri uri) => _states.ContainsKey(uri) && _states[uri] == CircuitBreakerState.Open;
 
@@ -36,7 +31,6 @@ public class CircuitBreaker
             _healthChecks[serviceAddress] = healthCheck;
             _failures[serviceAddress] = 0;
             _states[serviceAddress] = CircuitBreakerState.Closed;
-            _timers[serviceAddress] = null;
         }
 
         switch(_states[serviceAddress])
@@ -74,19 +68,14 @@ public class CircuitBreaker
         Console.WriteLine($"{address} now open");
         _states[address] = CircuitBreakerState.Open;
 
-        _timers[address] = new Timer(async _ => await CheckHealth(address), null, 0, _timeout);
-    }
-
-    private async Task CheckHealth(Uri address)
-    {
-        Console.WriteLine($"Checking health for {address}");
-        var response = await _healthChecks[address]();
-
-        if (response.Response)
+        _requestQueue.AddRequestToQueue(async () =>
         {
-            Reset(address);
-            _timers[address]!.Change(Timeout.Infinite, Timeout.Infinite);
-        }
+            var response = await _healthChecks[address]();
+            if (response.Response)
+                Reset(address);
+
+            return response.Response;
+        });
     }
 
     public void Reset(Uri address)

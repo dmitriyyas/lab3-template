@@ -97,7 +97,6 @@ public class GatewayController(RequestQueue requestQueue,
     [HttpGet("api/v1/privilege")]
     public async Task<IActionResult> GetPrivilege([FromHeader(Name = "X-User-Name")] string username)
     {
-        Console.WriteLine("got request get privilege");
         var privilegeResponse = await _bonusService.GetPrivileges(username);
         if (IsSuccessCode(privilegeResponse.StatusCode))
             return Ok(privilegeResponse.Response);
