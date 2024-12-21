@@ -34,16 +34,17 @@ public class RequestQueue
             }
 
             _requestsQueue.TryDequeue(out _);
-            var res = await request();
-            if (!res)
+            _ = Task.Run(async () =>
             {
-                Console.WriteLine($"requestQueue: false");
-                _requestsQueue.Enqueue(request);
-            }
-            else Console.WriteLine($"requestQueue: true");
-
-
-            Thread.Sleep(TimeSpan.FromSeconds(TimeoutInSeconds));
+                var start = DateTime.UtcNow;
+                var res = await request();
+                var end = DateTime.UtcNow;
+                if (!res)
+                {
+                    _ = Task.Delay(TimeSpan.FromSeconds(TimeoutInSeconds - (end - start).TotalSeconds))
+                        .ContinueWith(_ => _requestsQueue.Enqueue(request));
+                }
+            });
         }
     }
 }
