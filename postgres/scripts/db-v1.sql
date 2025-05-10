@@ -1,3 +1,6 @@
+CREATE DATABASE users;
+GRANT ALL PRIVILEGES ON DATABASE users TO program;
+
 CREATE DATABASE tickets;
 GRANT ALL PRIVILEGES ON DATABASE tickets TO program;
 
@@ -6,6 +9,20 @@ GRANT ALL PRIVILEGES ON DATABASE flights TO program;
 
 CREATE DATABASE privileges;
 GRANT ALL PRIVILEGES ON DATABASE privileges TO program;
+
+\c users;
+CREATE TABLE user
+(
+    id            SERIAL PRIMARY KEY,
+    username      VARCHAR(80) NOT NULL,
+    name          VARCHAR(80) NOT NULL,
+    surname       VARCHAR(80) NOT NULL,
+    fathername    VARCHAR(80) NOT NULL,
+    phone         VARCHAR(80) NOT NULL,
+    email         VARCHAR(80) NOT NULL,
+    role          VARCHAR(20) NOT NULL
+        CHECK (status IN ('ADMIN', 'USER'))
+);
 
 \c tickets;
 CREATE TABLE ticket

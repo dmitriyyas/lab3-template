@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GatewayService", "GatewaySe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{8C05776F-1611-49D4-9537-D4635FB22484}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthService", "AuthService\AuthService.csproj", "{CFCE061A-DA48-4276-9CF5-0EF4C471CC63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{8C05776F-1611-49D4-9537-D4635FB22484}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C05776F-1611-49D4-9537-D4635FB22484}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C05776F-1611-49D4-9537-D4635FB22484}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFCE061A-DA48-4276-9CF5-0EF4C471CC63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFCE061A-DA48-4276-9CF5-0EF4C471CC63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFCE061A-DA48-4276-9CF5-0EF4C471CC63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFCE061A-DA48-4276-9CF5-0EF4C471CC63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
