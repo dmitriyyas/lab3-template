@@ -1,5 +1,27 @@
 version: "3"
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
   postgres:
     image: library/postgres:13
     container_name: postgres
@@ -13,6 +35,16 @@ services:
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5433:5432"
+
+  stats_service:
+    container_name: stats_service
+    build:
+      context: src
+      dockerfile: StatsService/Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "8040:8040"
 
   bonus_service:
     container_name: bonus_service
@@ -53,6 +85,16 @@ services:
       - postgres
     ports:
       - "8080:8080"
+
+  auth_service:
+    container_name: auth_service
+    build:
+      context: src
+      dockerfile: AuthService/Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "8090:8090"
 
 volumes:
   db-data:

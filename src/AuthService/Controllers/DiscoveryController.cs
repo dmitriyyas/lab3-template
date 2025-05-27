@@ -1,19 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AuthService.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthService.Controllers;
 
 [ApiController]
+[Route("/")]
 public class DiscoveryController : ControllerBase
 {
-    [HttpGet("/.well-known/openid-configuration")]
+    
+    [HttpGet(".well-known/openid-configuration")]
     public IActionResult GetConfig()
     {
         var baseUrl = "https://localhost:5002";
         return Ok(new
         {
             issuer = baseUrl,
-            authorization_endpoint = $"{baseUrl}/authorize",
+            authorization_endpoint = $"{baseUrl}/api/v1/authorize",
             token_endpoint = $"{baseUrl}/token",
             userinfo_endpoint = $"{baseUrl}/userinfo",
             jwks_uri = $"{baseUrl}/.well-known/jwks.json",
@@ -24,7 +27,7 @@ public class DiscoveryController : ControllerBase
         });
     }
 
-    [HttpGet("/.well-known/jwks.json")]
+    [HttpGet(".well-known/jwks.json")]
     public IActionResult GetJwks()
     {
         var rsa = KeyStore.Rsa.ExportParameters(false);
@@ -42,4 +45,5 @@ public class DiscoveryController : ControllerBase
             }
         });
     }
+    
 }

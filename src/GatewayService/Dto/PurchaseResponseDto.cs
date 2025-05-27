@@ -11,7 +11,7 @@ public class PurchaseResponseDto(Guid ticketUid,
     int paidByMoney,
     int paidByBonuses,
     string status,
-    object privilege)
+    ShortPrivilegeDto? privilege)
 {
     public Guid TicketUid { get; set; } = ticketUid;
     public string FlightNumber { get; set; } = flightNumber;
@@ -22,5 +22,5 @@ public class PurchaseResponseDto(Guid ticketUid,
     public int PaidByMoney { get; set; } = paidByMoney;
     public int PaidByBonuses { get; set; } = paidByBonuses;
     public string Status { get; set; } = status;
-    public object Privilege { get; set; } = privilege;
+    public ShortPrivilegeDto? Privilege { get; set; } = privilege;
 }

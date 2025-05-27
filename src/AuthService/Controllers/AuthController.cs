@@ -1,6 +1,10 @@
 ﻿using AuthService.Dto;
+using AuthService.Models;
 using AuthService.Services;
+using Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -8,9 +12,12 @@ using System.Security.Claims;
 namespace AuthService.Controllers;
 
 [ApiController]
-public class AuthController : Controller
+[Route("/")]
+public class AuthController(UsersContext context) : Controller
 {
-    [HttpGet("/authorize")]
+    private readonly UsersContext _context = context;
+    
+    [HttpGet("api/v1/authorize")]
     public IActionResult Authorize(string response_type, string client_id, string redirect_uri, string scope, string state)
     {
         if (response_type != "code")
@@ -32,24 +39,72 @@ public class AuthController : Controller
             </html>", "text/html"); // поменять на редирект на страницу логина
     }
 
-    [HttpPost("/login")]
-    public IActionResult Login([FromBody] AuthDataDto authData)
+    [HttpPost("api/v1/login")]
+    public async Task<IActionResult> Login([FromBody] AuthDataDto authData)
     {
-        var user = UserStore.Validate(username, password);
-        if (user == null)
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == authData.Username && u.PasswordHash == authData.Password);
+        if (user is null)
             return Unauthorized();
 
         var code = Guid.NewGuid().ToString("N");
-        CodeStore.Save(code, user, client_id, scope);
+        CodeStore.Save(code, user, authData.ClientId, authData.Scope);
 
-        return Redirect($"{redirect_uri}?code={code}&state={state}");
+        Console.WriteLine(code);
+
+        var redirectUrl = $"{authData.RedirectUri}?code={code}&state={authData.State}";
+        //Response.Headers.Location = redirectUrl;
+
+        //return StatusCode(302);
+        return Ok(redirectUrl);
+    }
+    
+    [HttpPost("api/v1/users")]
+    //[Authorize]
+    public async Task<IActionResult> Register([FromBody] UserCreateDto userCreate)
+    {
+        //if (!HttpContext.IsAdminRequest())
+        //    return Forbid();
+
+        var existedUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == userCreate.Username || u.Phone == userCreate.Phone || u.Email == userCreate.Email);
+
+        if (existedUser is not null)
+            return Conflict("User with such username or phone or email already exists.");
+
+        var user = new User
+        {
+            Username = userCreate.Username,
+            PasswordHash = userCreate.Password,
+            Name = userCreate.Name,
+            Surname = userCreate.Surname,
+            Fathername = userCreate.Fathername,
+            Phone = userCreate.Phone,
+            Email = userCreate.Email,
+            Role = "USER"
+        };
+
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+
+        return Ok();
     }
 
-    [HttpPost("/token")]
-    public IActionResult Token([FromForm] string code, [FromForm] string client_id)
+    [HttpGet("api/v1/me")]
+    [Authorize]
+    public async Task<IActionResult> GetUserInfo()
     {
-        var data = CodeStore.Get(code);
-        if (data == null) return Unauthorized();
+        var username = HttpContext.GetUsername();
+
+        var user = await _context.Users.FirstAsync(u => u.Username == username);
+
+        return Ok(ToDto(user));
+    }
+
+    [HttpPost("api/v1/token")]
+    public IActionResult GetToken([FromBody] TokenRequestDto tokenRequest)
+    {
+        var data = CodeStore.Get(tokenRequest.Code);
+        if (data is null) 
+            return Unauthorized();
 
         var scope = data.Scope;
         var user = data.User;
@@ -60,7 +115,9 @@ public class AuthController : Controller
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id)
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new("Username", user.Username),
+            new("Role", user.Role)
         };
 
         if (scope.Contains("profile"))
@@ -69,36 +126,26 @@ public class AuthController : Controller
             claims.Add(new(JwtRegisteredClaimNames.Email, user.Email));
 
         var token = new JwtSecurityToken(
-            issuer: "https://localhost:5001",
-            audience: client_id,
+            issuer: "Issuer",
+            audience: tokenRequest.ClientId,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(30),
+            expires: DateTime.UtcNow.AddHours(30),
             signingCredentials: creds
         );
         token.Header["kid"] = KeyStore.KeyId;
 
-        return Ok(new
-        {
-            id_token = handler.WriteToken(token),
-            token_type = "Bearer"
-        });
+        return Ok(handler.WriteToken(token));
     }
 
-    [HttpGet("/userinfo")]
-    public IActionResult UserInfo([FromHeader(Name = "Authorization")] string authHeader)
+    private static UserDto ToDto(User user)
     {
-        if (authHeader == null || !authHeader.StartsWith("Bearer ")) return Unauthorized();
-
-        var token = authHeader["Bearer ".Length..];
-        var handler = new JwtSecurityTokenHandler();
-        var jwt = handler.ReadJwtToken(token);
-
-        var claims = jwt.Claims.ToDictionary(c => c.Type, c => c.Value);
-        return Ok(new
-        {
-            sub = claims.GetValueOrDefault("sub"),
-            name = claims.GetValueOrDefault("name"),
-            email = claims.GetValueOrDefault("email")
-        });
+        return new UserDto(id: user.Id,
+            username: user.Username,
+            name: user.Name,
+            surname: user.Surname,
+            fathername: user.Fathername,
+            phone: user.Phone,
+            email: user.Email,
+            role: user.Role);
     }
 }

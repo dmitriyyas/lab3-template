@@ -1,3 +1,4 @@
+using Common;
 using FlightService;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,8 @@ INSERT INTO public.flight(
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGenWithJwt();
+builder.Services.AddOauth();
 
 builder.Services.AddDbContext<FlightsContext>(opt =>
             opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),

@@ -22,13 +22,14 @@ public class FlightController(FlightsContext context) : ControllerBase
     {
         IQueryable<Flight> query = _context.Flights;
 
-        if (page is not null && size is not null)
-            query = query.Skip((page.Value - 1) * size.Value).Take(size.Value);
-
         if (numbers is not null)
             query = query.Where(f => numbers.Contains(f.FlightNumber));
 
         var totalElements = await query.CountAsync();
+
+        if (page is not null && size is not null)
+            query = query.Skip((page.Value - 1) * size.Value).Take(size.Value);
+
         var flights = await query.Include(f => f.FromAirport).Include(f => f.ToAirport).ToListAsync();
 
         var result = new FlightsDto(page ?? 1,

@@ -28,14 +28,14 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         }
     }
 
-    public async Task<ServiceResponse<List<TicketDto>>> GetTickets(string username)
+    public async Task<ServiceResponse<List<TicketDto>>> GetTickets(string accessToken)
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<List<TicketDto>>();
 
         var client = _httpClientFactory.CreateClient();
         using var ticketsRequest = new HttpRequestMessage(HttpMethod.Get, Address + "api/v1/tickets");
-        ticketsRequest.Headers.Add("X-User-Name", username);
+        ticketsRequest.Headers.Add("Authorization", accessToken);
 
         return await _circuitBreaker.ExecuteAsync(async () =>
         {
@@ -44,14 +44,14 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         }, HealthCheck, Fallback<List<TicketDto>>(), Address);
     }
 
-    public async Task<ServiceResponse<TicketDto>> GetTicket(string username, Guid ticketUid)
+    public async Task<ServiceResponse<TicketDto>> GetTicket(string accessToken, Guid ticketUid)
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<TicketDto>();
 
         var client = _httpClientFactory.CreateClient();
         using var ticketRequest = new HttpRequestMessage(HttpMethod.Get, Address + $"api/v1/tickets/{ticketUid}");
-        ticketRequest.Headers.Add("X-User-Name", username);
+        ticketRequest.Headers.Add("Authorization", accessToken);
 
         return await _circuitBreaker.ExecuteAsync(async () =>
         {
@@ -63,14 +63,14 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         }, HealthCheck, Fallback<TicketDto>(), Address);
     }
 
-    public async Task<ServiceResponse<bool>> CancelTicket(string username, Guid ticketUid)
+    public async Task<ServiceResponse<bool>> CancelTicket(string accessToken, Guid ticketUid)
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<bool>();
 
         var client = _httpClientFactory.CreateClient();
         using var ticketRequest = new HttpRequestMessage(HttpMethod.Delete, Address + $"api/v1/tickets/{ticketUid}");
-        ticketRequest.Headers.Add("X-User-Name", username);
+        ticketRequest.Headers.Add("Authorization", accessToken);
 
         try
         {
@@ -86,14 +86,14 @@ public class TicketService(IHttpClientFactory httpClientFactory,
         }
     }
 
-    public async Task<ServiceResponse<TicketDto>> CreateTicket(string username, TicketCreateDto ticketCreateDto)
+    public async Task<ServiceResponse<TicketDto>> CreateTicket(string accessToken, TicketCreateDto ticketCreateDto)
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<TicketDto>();
 
         var client = _httpClientFactory.CreateClient();
         var ticketRequest = new HttpRequestMessage(HttpMethod.Post, Address + $"api/v1/tickets");
-        ticketRequest.Headers.Add("X-User-Name", username);
+        ticketRequest.Headers.Add("Authorization", accessToken);
         ticketRequest.Content = JsonContent.Create(ticketCreateDto);
 
         try

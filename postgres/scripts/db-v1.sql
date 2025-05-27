@@ -10,18 +10,22 @@ GRANT ALL PRIVILEGES ON DATABASE flights TO program;
 CREATE DATABASE privileges;
 GRANT ALL PRIVILEGES ON DATABASE privileges TO program;
 
+CREATE DATABASE stats;
+GRANT ALL PRIVILEGES ON DATABASE stats TO program;
+
 \c users;
-CREATE TABLE user
+CREATE TABLE users
 (
     id            SERIAL PRIMARY KEY,
     username      VARCHAR(80) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     name          VARCHAR(80) NOT NULL,
     surname       VARCHAR(80) NOT NULL,
     fathername    VARCHAR(80) NOT NULL,
     phone         VARCHAR(80) NOT NULL,
     email         VARCHAR(80) NOT NULL,
     role          VARCHAR(20) NOT NULL
-        CHECK (status IN ('ADMIN', 'USER'))
+        CHECK (role IN ('ADMIN', 'USER'))
 );
 
 \c tickets;
@@ -82,4 +86,15 @@ CREATE TABLE privilege_history
     balance_diff   INT         NOT NULL,
     operation_type VARCHAR(20) NOT NULL
         CHECK (operation_type IN ('FILL_IN_BALANCE', 'DEBIT_THE_ACCOUNT'))
+);
+
+\c stats;
+CREATE TABLE stats
+(
+    id             SERIAL PRIMARY KEY,
+    method         VARCHAR(80) NOT NULL,
+    path           VARCHAR(80) NOT NULL,
+    status_code    INT NOT NULL,
+    duration_ms    BIGINT NOT NULL,
+    timestamp      TIMESTAMP WITH TIME ZONE NOT NULL
 );

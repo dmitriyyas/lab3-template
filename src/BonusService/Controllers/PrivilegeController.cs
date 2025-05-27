@@ -1,5 +1,7 @@
 ﻿using BonusService.Dto;
 using BonusService.Models;
+using Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,18 +20,19 @@ public class PrivilegeController(PrivilegesContext context) : ControllerBase
     }
 
     [HttpGet("api/v1/privileges")]
-    public async Task<IActionResult> GetPrivilege([FromHeader(Name = "X-User-Name")] string username)
+    [Authorize]
+    public async Task<IActionResult> GetPrivilege()
     {
-        var privilege = await GetOrCreatePrivilege(username);
+        var privilege = await GetOrCreatePrivilege(HttpContext.GetUsername());
 
         return Ok(ToDto(privilege));
     }
 
     [HttpPost("api/v1/privileges")]
-    public async Task<IActionResult> BuyTicket([FromHeader(Name = "X-User-Name")] string username, 
-        [FromBody] TicketInfoDto ticketInfo)
+    [Authorize]
+    public async Task<IActionResult> BuyTicket([FromBody] TicketInfoDto ticketInfo)
     {
-        var privilege = await GetOrCreatePrivilege(username);
+        var privilege = await GetOrCreatePrivilege(HttpContext.GetUsername());
 
         if (ticketInfo.PaidFromBalance is true)
         {
@@ -57,6 +60,7 @@ public class PrivilegeController(PrivilegesContext context) : ControllerBase
     }
 
     [HttpDelete("api/v1/privileges/{ticketUid}")]
+    [Authorize]
     public async Task<IActionResult> CancelPurchase([FromRoute] Guid ticketUid)
     {
         var privilegeHistory = await _context.PrivilegeHistories

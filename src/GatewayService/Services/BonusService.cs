@@ -28,14 +28,14 @@ public class BonusService(IHttpClientFactory httpClientFactory,
         }
     }
 
-    public async Task<ServiceResponse<PrivilegeDto>> GetPrivileges(string username)
+    public async Task<ServiceResponse<PrivilegeDto>> GetPrivileges(string accessToken)
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<PrivilegeDto>();
 
         var client = _httpClientFactory.CreateClient();
         using var privilegeRequest = new HttpRequestMessage(HttpMethod.Get, Address + "api/v1/privileges");
-        privilegeRequest.Headers.Add("X-User-Name", username);
+        privilegeRequest.Headers.Add("Authorization", accessToken);
 
         return await _circuitBreaker.ExecuteAsync(async () =>
         {
@@ -44,14 +44,14 @@ public class BonusService(IHttpClientFactory httpClientFactory,
         }, HealthCheck, Fallback<PrivilegeDto>(), Address);
     }
 
-    public async Task<ServiceResponse<PurchaseInfoDto>> BuyTicket(string username, TicketInfoDto ticketInfo)
+    public async Task<ServiceResponse<PurchaseInfoDto>> BuyTicket(string accessToken, TicketInfoDto ticketInfo)
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<PurchaseInfoDto>();
 
         var client = _httpClientFactory.CreateClient();
         using var buyRequest = new HttpRequestMessage(HttpMethod.Post, Address + $"api/v1/privileges");
-        buyRequest.Headers.Add("X-User-Name", username);
+        buyRequest.Headers.Add("Authorization", accessToken);
         buyRequest.Content = JsonContent.Create(ticketInfo);
 
         try
@@ -67,14 +67,14 @@ public class BonusService(IHttpClientFactory httpClientFactory,
         }
     }
 
-    public async Task<ServiceResponse<bool>> CancelTicket(string username, Guid ticketUid)
+    public async Task<ServiceResponse<bool>> CancelTicket(string accessToken, Guid ticketUid)
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<bool>();
 
         var client = _httpClientFactory.CreateClient();
         using var privilegeRequest = new HttpRequestMessage(HttpMethod.Delete, Address + $"api/v1/privileges/{ticketUid}");
-        privilegeRequest.Headers.Add("X-User-Name", username);
+        privilegeRequest.Headers.Add("Authorization", accessToken);
 
         try
         {
