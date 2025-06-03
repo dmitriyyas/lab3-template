@@ -9,7 +9,7 @@ public class BonusService(IHttpClientFactory httpClientFactory,
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
     private const string _serviceName = "Bonus"; 
-    public Uri Address { get; } = new("http://bonus_service:8050/");
+    public Uri Address { get; } = new("http://services-bonus-srv:8050/");
 
     private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 

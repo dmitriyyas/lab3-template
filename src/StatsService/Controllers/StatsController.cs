@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatsService.Dto;
 using StatsService.Models;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace StatsService.Controllers;
 

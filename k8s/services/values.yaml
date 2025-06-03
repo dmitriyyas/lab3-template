@@ -1,0 +1,48 @@
+# Default values for my-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+services:
+  gateway:
+    name: gateway
+    container: docker.io/dmitriyyas/gateway_service:latest
+    replicaCount: 1
+    port: 8080
+    publishUrl: /
+
+  stats:
+    name: stats
+    container: docker.io/dmitriyyas/stats_service:latest
+    replicaCount: 1
+    port: 8040
+    publishUrl: /stats-service-direct/
+
+  bonus:
+    name: bonus
+    container: docker.io/dmitriyyas/bonus_service:latest
+    replicaCount: 1
+    port: 8050
+    publishUrl: /bonus-service-direct/
+
+  flight:
+    name: flight
+    container: docker.io/dmitriyyas/flight_service:latest
+    replicaCount: 1
+    port: 8060
+    publishUrl: /flight-service-direct/
+  
+  ticket:
+    name: ticket
+    container: docker.io/dmitriyyas/ticket_service:latest
+    replicaCount: 1
+    port: 8070
+    publishUrl: /ticket-service-direct/
+  
+  auth:
+    name: auth
+    container: docker.io/dmitriyyas/auth_service:latest
+    replicaCount: 1
+    port: 8090
+    publishUrl: /auth-service-direct/

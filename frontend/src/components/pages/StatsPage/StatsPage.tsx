@@ -32,7 +32,7 @@ export const StatsPage: React.FC = () => {
 				setErrorMessage("Ошибка поиска.");
 				setIsError(true);
 
-                if (err.code == '401')
+                if (err.status == 401)
                 {
                     GatewayService.logout();
                     navigate('/auth')

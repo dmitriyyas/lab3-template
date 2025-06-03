@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  repository: apache/kafka
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  ports:
+    - name: client
+      port: 9092
+      targetPort: 9092
+    - name: controller
+      port: 9093
+      targetPort: 9093
+
+kafka:
+  listeners: DOCKER://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+  advertisedListeners: DOCKER://kafka:9092
+  listenerSecurityProtocolMap: CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT,HOST:PLAINTEXT
+  controllerListenerNames: CONTROLLER
+  interBrokerListenerName: DOCKER
+  processRoles: broker,controller
+  nodeId: 1
+  controllerQuorumVoters: 1@localhost:9093
+  logDirs: /kafka/kraft-combined-logs
+  offsetsTopicReplicationFactor: 1

@@ -9,7 +9,7 @@ public class AuthService(IHttpClientFactory httpClientFactory,
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
     private const string _serviceName = "Auth";
-    public Uri Address { get; } = new("http://auth_service:8090/");
+    public Uri Address { get; } = new("http://services-auth-srv:8090/");
 
     private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 

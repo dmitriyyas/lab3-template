@@ -37,7 +37,12 @@ export const UserPage: React.FC = () => {
                 setUserInfo(res.data);
             })
             .catch((err) => {
-                navigate('/auth');
+                const axiosErr = err as AxiosError;
+                if (axiosErr.status == 401)
+                {
+                    GatewayService.logout();
+                    navigate('/auth')
+                }
             });
         GatewayService.getPrivilege()
             .then((res) => {
@@ -59,7 +64,7 @@ export const UserPage: React.FC = () => {
         {
             setIsError(true);
             const axiosErr = err as AxiosError;
-            if (axiosErr.code == '401')
+            if (axiosErr.status == 401)
 			{
 				GatewayService.logout();
 				navigate('/auth')

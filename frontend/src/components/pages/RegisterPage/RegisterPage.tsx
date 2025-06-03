@@ -73,9 +73,9 @@ export const RegisterPage: React.FC = () => {
         {
             setIsError(true);
             const axiosErr = err as AxiosError;
-            switch (axiosErr.code)
+            switch (axiosErr.status)
             {
-            case '409':
+            case 409:
                 setErrorMessage('Пользователь с таким логином, телефоном или почтой уже существует.')
                 break;
             default:

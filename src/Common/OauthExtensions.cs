@@ -28,7 +28,7 @@ public static class OauthExtensions
                 IssuerSigningKeyResolver = (token, securityToken, keyIdentifier, parameters) =>
                 {
                     var client = new HttpClient();
-                    var jwksUri = "http://auth_service:8090/.well-known/jwks.json";
+                    var jwksUri = "http://services-auth-srv:8090/.well-known/jwks.json";
                     var jwks = client.GetStringAsync(jwksUri).Result;
                     var keys = JsonWebKeySet.Create(jwks);
 

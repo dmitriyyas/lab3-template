@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 9092
+            - containerPort: 9093
+          env:
+            - name: KAFKA_LISTENERS
+              value: "{{ .Values.kafka.listeners }}"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "{{ .Values.kafka.advertisedListeners }}"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "{{ .Values.kafka.listenerSecurityProtocolMap }}"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "{{ .Values.kafka.controllerListenerNames }}"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "{{ .Values.kafka.interBrokerListenerName }}"
+            - name: KAFKA_PROCESS_ROLES
+              value: "{{ .Values.kafka.processRoles }}"
+            - name: KAFKA_NODE_ID
+              value: "{{ .Values.kafka.nodeId }}"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "{{ .Values.kafka.controllerQuorumVoters }}"
+            - name: KAFKA_LOG_DIRS
+              value: "{{ .Values.kafka.logDirs }}"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "{{ .Values.kafka.offsetsTopicReplicationFactor }}"
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /kafka
+      volumes:
+        - name: kafka-data
+          emptyDir: {}

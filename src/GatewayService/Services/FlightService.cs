@@ -13,7 +13,7 @@ public class FlightService(IHttpClientFactory httpClientFactory,
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
     private const string _serviceName = "Flight";
 
-    public Uri Address { get; } = new("http://flight_service:8060/");
+    public Uri Address { get; } = new("http://services-flight-srv:8060/");
 
     private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 
@@ -36,7 +36,7 @@ public class FlightService(IHttpClientFactory httpClientFactory,
     {
         if (_circuitBreaker.IsOpen(Address))
             return Fallback<FlightsDto>();
-
+        
         var client = _httpClientFactory.CreateClient();
         var query = "api/v1/flights";
         if (flightNumbers is not null || page is not null || size is not null)

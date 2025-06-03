@@ -8,7 +8,7 @@ public class StatsService(IHttpClientFactory httpClientFactory,
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
     private const string _serviceName = "Stats";
-    public Uri Address { get; } = new("http://stats_service:8040/");
+    public Uri Address { get; } = new("http://services-stats-srv:8040/");
 
     private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 

@@ -61,7 +61,7 @@ export const FlightsPage: React.FC = () => {
 			})
 			.catch((err: AxiosError) => {
 				setPrivilege(null);
-				if (err.code == '401')
+				if (err.status == 401)
 				{
 					GatewayService.logout();
 					navigate('/auth')
@@ -88,7 +88,7 @@ export const FlightsPage: React.FC = () => {
 		{
 			setIsError(true);
 			const axiosErr = err as AxiosError;
-			if (axiosErr.code == '401')
+			if (axiosErr.status == 401)
 			{
 				GatewayService.logout();
 				navigate('/auth')

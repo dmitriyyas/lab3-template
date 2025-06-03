@@ -9,7 +9,7 @@ public class TicketService(IHttpClientFactory httpClientFactory,
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly CircuitBreaker _circuitBreaker = circuitBreaker;
     private const string _serviceName = "Ticket";
-    public Uri Address { get; } = new("http://ticket_service:8070/");
+    public Uri Address { get; } = new("http://services-ticket-srv:8070/");
 
     private static ServiceResponse<T> Fallback<T>() => ServiceResponse<T>.Fallback(_serviceName);
 
