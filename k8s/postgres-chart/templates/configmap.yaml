@@ -34,6 +34,9 @@ data:
             CHECK (role IN ('ADMIN', 'USER'))
     );
 
+    INSERT INTO public.users(id, username, password_hash, name, surname, fathername, phone, email, role) VALUES 
+    (1, 'admin', 'admin', 'Админ', 'Админ', 'Админ', '88005553535', 'admin@mail.ru', 'ADMIN');
+
     \c tickets;
     CREATE TABLE ticket
     (
@@ -67,11 +70,21 @@ data:
 
     INSERT INTO public.airport(id, name, city, country) VALUES 
     (1, 'Шереметьево', 'Москва', 'Россия'),
-    (2, 'Пулково', 'Санкт-Петербург', 'Россия');
+    (2, 'Пулково', 'Санкт-Петербург', 'Россия'),
+    (3, 'Внуково', 'Москва', 'Россия'),
+    (4, 'Домодедово', 'Москва', 'Россия');
 
     INSERT INTO public.flight(
-      id, flight_number, datetime, from_airport_id, to_airport_id, price)
-      VALUES (1, 'AFL031', '2021-10-08 20:00', 2, 1, 1500);
+      id, flight_number, datetime, from_airport_id, to_airport_id, price) VALUES
+    (1, 'AFL031', '2021-10-08 20:00', 2, 1, 1500),
+    (2, 'AFL032', '2021-10-08 21:00', 2, 4, 1000),
+    (3, 'AFL033', '2021-10-10 10:00', 3, 2, 800),
+    (4, 'AFL034', '2021-10-11 11:15', 4, 2, 2500),
+    (5, 'AFL035', '2021-11-08 20:00', 2, 3, 1500),
+    (6, 'AFL036', '2021-11-09 19:00', 1, 2, 1200),
+    (7, 'AFL037', '2021-11-20 08:00', 2, 3, 1600),
+    (8, 'AFL038', '2021-11-29 17:00', 2, 4, 1700);
+    
 
     \c privileges;
     CREATE TABLE privilege

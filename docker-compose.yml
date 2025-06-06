@@ -6,21 +6,14 @@ services:
     ports:
       - "9092:9092"
     environment:
-      # Configure listeners for both docker and host communication
       KAFKA_LISTENERS: CONTROLLER://localhost:9093,DOCKER://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: DOCKER://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT,HOST:PLAINTEXT
-
-      # Settings required for KRaft mode
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
-
-      # Listener to use for broker-to-broker communication
       KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
-
-      # Required for a single node cluster
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   postgres:
@@ -36,6 +29,17 @@ services:
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5433:5432"
+
+  nginx:
+    image: dmitriyyas/mytickets_frontend:latest
+    container_name: nginx
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8010:8010"
+
 
   stats_service:
     image: dmitriyyas/stats_service:latest

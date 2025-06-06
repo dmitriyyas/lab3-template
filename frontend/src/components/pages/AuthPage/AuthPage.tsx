@@ -57,7 +57,7 @@ export const AuthPage: React.FC = () => {
 	};
 
 	const handleSignIn = async () => {
-        const redirectUri = searchParams.get("redirect_uri") ?? 'http://localhost:3000/auth';
+        const redirectUri = searchParams.get("redirect_uri") ?? 'http://localhost/auth';
         const clientId = searchParams.get("client_id") ?? "Audience";
         const scope = searchParams.get("scope") ?? "openid profile email";
         let state = searchParams.get("state");

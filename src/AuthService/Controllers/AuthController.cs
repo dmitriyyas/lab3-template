@@ -23,20 +23,7 @@ public class AuthController(UsersContext context) : Controller
         if (response_type != "code")
             return BadRequest();
 
-        return Content($@"
-            <html>
-            <body>
-                <form method='post' action='/login'>
-                    <input type='hidden' name='redirect_uri' value='{redirect_uri}' />
-                    <input type='hidden' name='client_id' value='{client_id}' />
-                    <input type='hidden' name='state' value='{state}' />
-                    <input type='hidden' name='scope' value='{scope}' />
-                    <label>Username: <input name='username' /></label><br/>
-                    <label>Password: <input name='password' type='password' /></label><br/>
-                    <button type='submit'>Login</button>
-                </form>
-            </body>
-            </html>", "text/html"); // поменять на редирект на страницу логина
+        return Redirect($"http://localhost/auth?redirect_uri={redirect_uri}&cliend_id={client_id}&scope='{scope}'&state={state}");
     }
 
     [HttpPost("api/v1/login")]

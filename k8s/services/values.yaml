@@ -1,16 +1,17 @@
-# Default values for my-app.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-replicaCount: 1
-
 services:
+  frontend:
+    name: frontend
+    container: docker.io/dmitriyyas/mytickets_frontend:latest
+    replicaCount: 1
+    port: 8010
+    publishUrl: /
+    
   gateway:
     name: gateway
     container: docker.io/dmitriyyas/gateway_service:latest
     replicaCount: 1
     port: 8080
-    publishUrl: /
+    publishUrl: /gateway-service-direct/
 
   stats:
     name: stats

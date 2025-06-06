@@ -10,14 +10,14 @@ spec:
   rules:
     - http:
         paths:
-          {{- range  $key, $val := .Values.services}}
-          {{- if (hasKey $val "publishUrl") }}
-          - path: {{ (printf "%s(.*)" $val.publishUrl) | quote}}
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: {{ $.Release.Name }}-{{$val.name}}-srv
-                port:
-                  number: {{ $val.port }}
-          {{- end}}
-          {{- end }}
+        {{- range  $key, $val := .Values.services}}
+        {{- if (hasKey $val "publishUrl") }}
+        - path: {{ (printf "%s(.*)" $val.publishUrl) | quote}}
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: {{ $.Release.Name }}-{{$val.name}}-srv
+              port:
+                number: {{ $val.port }}
+        {{- end}}
+        {{- end }}
